@@ -4,7 +4,7 @@ on:
     inputs:
       REPO:
         description: 'Kernel repository'
-        default: 'rsuplaygrnd/android_kernel_asus_sdm660-4.19'
+        default: 'rsuntk/android_kernel_asus_sdm660'
         required: true
       BRANCH:
         description: 'Kernel branch'
