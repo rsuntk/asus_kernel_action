@@ -42,7 +42,7 @@ jobs:
       id: cache-toolchain
       uses: actions/cache@v4
       with:
-        path: $HOME/gcc-14.2.0-nolibc
+        path: ~/gcc-14.2.0-nolibc
         key: gcc-14.2.0-nolibc-aarch64
 
     - name: Cache ccache
@@ -61,14 +61,14 @@ jobs:
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
         echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+        echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: |
-        chmod +x build.sh
-        bash ./build.sh --fetch-toolchains
+      run: bash ./build.sh --fetch-toolchains
 
-    - name: send telegram message on push
+    - name: Send Telegram notifier
+      continue-on-error: true
       uses: appleboy/telegram-action@master
       with:
           to: ${{ secrets.TG_CHAT_ID }}
@@ -79,7 +79,7 @@ jobs:
             Repository: ${{ github.event.inputs.REPO }}
             Branch: ${{ github.event.inputs.BRANCH }}
             Device: ${{ github.event.inputs.DEVICE_TARGET }}
-            Date: `date`
+            Date: ${{ steps.buildKernel.outputs.currDate }}
             KernelSU: ${{ github.event.inputs.KSU }}
             Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
 
@@ -92,6 +92,9 @@ jobs:
         KSU: ${{ github.event.inputs.KSU }}
       run: |
         cd kernel_root
+        if [ ! -d ~/.ccache ]; then
+          mkdir -p ~/.ccache
+        fi
         # Handle KernelSU
         if [[ "$KSU" == "true" ]]; then
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
