@@ -28,6 +28,7 @@ error() {
 send_telegram() {
     local file="$1"
     local md5="$2"
+    local time="$(($3 / 60))"
 
     if [[ -z "$TG_TOKEN" || -z "$TG_CHAT_ID" ]]; then
         msg "Telegram credentials missing. Skipping upload."
@@ -35,7 +36,7 @@ send_telegram() {
     fi
 
     msg "Uploading to Telegram..."
-    local caption="Device: ${DEVICE_TARGET}%0AMD5: ${md5}"
+    local caption="Device: ${DEVICE_TARGET}%0AMD5: ${md5}%0Build completed in ${time} minutes!"
 
     curl -F document=@"$file" \
         "https://api.telegram.org/bot${TG_TOKEN}/sendDocument?chat_id=${TG_CHAT_ID}&caption=${caption}" \
@@ -150,7 +151,7 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     MD5_CHECK=$(md5sum "$ZIPNAME" | cut -d' ' -f1)
 
     # Trigger Telegram Upload
-    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK"
+    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS"
 
     [ "$DO_CLEAN" = "true" ] && rm -rf AnyKernel3 "$OUT_DIR/arch/arm64/boot"
 
