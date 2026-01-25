@@ -138,8 +138,6 @@ fi
 
 mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
-if [ "$" ]; then
-fi
 make $BUILD_FLAGS "$DEFCONFIG"
 make $BUILD_FLAGS Image.gz-dtb
 
