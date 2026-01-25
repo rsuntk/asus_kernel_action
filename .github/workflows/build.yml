@@ -38,7 +38,6 @@ jobs:
     - name: Clone kernel source
       run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
 
-    # Caching Toolchain (Saves ~1-2 min)
     - name: Cache Toolchain
       id: cache-toolchain
       uses: actions/cache@v4
@@ -46,7 +45,6 @@ jobs:
         path: $HOME/gcc-14.2.0-nolibc
         key: gcc-14.2.0-nolibc-aarch64
 
-    # Caching CCACHE (Saves ~10-15 min on repeat builds)
     - name: Cache ccache
       uses: actions/cache@v4
       with:
@@ -75,7 +73,6 @@ jobs:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
-        USE_PERSONAL_DEFCONFIG: ${{ github.event.inputs.USE_PERSONAL }}
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         KSU: ${{ github.event.inputs.KSU }}
       run: |
