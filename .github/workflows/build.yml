@@ -68,6 +68,21 @@ jobs:
         chmod +x build.sh
         bash ./build.sh --fetch-toolchains
 
+    - name: send telegram message on push
+      uses: appleboy/telegram-action@master
+      with:
+          to: ${{ secrets.TG_CHAT_ID }}
+          token: ${{ secrets.TG_TOKEN }}
+          message: |
+            Build started!
+
+            Repository: ${{ github.event.inputs.REPO }}
+            Branch: ${{ github.event.inputs.BRANCH }}
+            Device: ${{ github.event.inputs.DEVICE_TARGET }}
+            Date: `date`
+            KernelSU: ${{ github.event.inputs.KSU }}
+            Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
+
     - name: Build Kernel
       env:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
