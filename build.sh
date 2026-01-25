@@ -35,13 +35,17 @@ send_telegram() {
         return
     fi
 
+    local msg_bar="Device: ${DEVICE_TARGET}
+MD5: ${md5}
+
+Build success in ${time} minutes"
+
     msg "Uploading to Telegram..."
-    local caption="Device: ${DEVICE_TARGET}%0AMD5: ${md5}%0Build completed in ${time} minutes!"
-
-    curl -F document=@"$file" \
-        "https://api.telegram.org/bot${TG_TOKEN}/sendDocument?chat_id=${TG_CHAT_ID}&caption=${caption}" \
-        -s >/dev/null
-
+    curl -s -F document=@$file "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
+        -F chat_id="$TG_CHAT_ID" \
+        -F "disable_web_page_preview=true" \
+        -F "parse_mode=markdownv2" \
+        -F caption="$msg_bar"
     msg "Upload completed!"
 }
 
@@ -67,7 +71,7 @@ disable_thermal_configs() {
 
 # --- Dependencies Setup ---
 setup_deps() {
-    deps_lists=(aptitude bc bison ccache cpio curl flex git lz4 perl python-is-python3 tar wget)
+    local deps_lists=(aptitude bc bison ccache cpio curl flex git lz4 perl python-is-python3 tar wget)
     sudo apt update -y
     sudo apt install "${deps_lists[@]}" -y
     sudo aptitude install libssl-dev -y
@@ -134,6 +138,8 @@ fi
 
 mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
+if [ "$" ]; then
+fi
 make $BUILD_FLAGS "$DEFCONFIG"
 make $BUILD_FLAGS Image.gz-dtb
 
