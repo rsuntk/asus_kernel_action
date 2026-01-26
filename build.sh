@@ -90,6 +90,19 @@ setup_toolchain() {
     fi
 }
 
+# --- Regenerate savedefconfig ---
+regen_defconfig() {
+    [ -z "$DEVICE_TARGET" ] && error "DEVICE_TARGET is required to regen!"
+    mkdir -p "$OUT_DIR"
+    msg "Generating minimal defconfig for $DEVICE_TARGET..."
+
+    make $BUILD_FLAGS "$DEFCONFIG"
+    make $BUILD_FLAGS savedefconfig
+
+    msg "Done!"
+    exit 0
+}
+
 # --- Arguments Check ---
 case "$1" in
 "--setup-deps")
@@ -129,11 +142,7 @@ BUILD_FLAGS="O=$OUT_DIR ARCH=arm64 -j$(nproc --all)"
 
 # --- Build Process ---
 if [ "$1" = "--regen-defconfig" ]; then
-    mkdir -p "$OUT_DIR"
-    make $BUILD_FLAGS "$DEFCONFIG"
-    mv "$OUT_DIR/.config" "$OUT_DIR/defconfig"
-    msg "Regen successful!"
-    exit 0
+    regen_defconfig
 fi
 
 mkdir -p "$OUT_DIR"
