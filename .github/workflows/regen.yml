@@ -47,7 +47,7 @@ jobs:
     - name: Build defconfig
       env:
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
-      run: bash ./build.sh --regen-defconfig
+      run: cd kernel_root && bash ../build.sh --regen-defconfig
 
     - name: Upload kernel defconfig
       uses: actions/upload-artifact@v4
