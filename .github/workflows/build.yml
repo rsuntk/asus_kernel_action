@@ -101,7 +101,7 @@ jobs:
       run: bash ./build.sh --regen-defconfig
 
     - name: Build Kernel
-      if: github.event.inputs.BUILD_DEFCONFIG != 'true' 
+      if: ${{ github.event.inputs.BUILD_DEFCONFIG != 'true' || github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
       env:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -117,7 +117,7 @@ jobs:
         if [[ "$KSU" == "true" ]]; then
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
         fi
-        [ "${{ github.event.inputs.UPDATE_TOOLCHAIN }}" != "true" ] && bash ../build.sh || echo "[-] Skip building, update toolchain"
+        bash ../build.sh
 
     - name: Upload kernel defconfig
       if: github.event.inputs.BUILD_DEFCONFIG == true
