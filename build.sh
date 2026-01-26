@@ -87,7 +87,10 @@ _setup_toolchain() {
 }
 
 setup_toolchain() {
-    [ "$UPDATE_TOOLCHAINS" = "true" ] && rm -rf $TC_DIR
+    if [ "$UPDATE_TOOLCHAINS" = "true" ]; then
+        rm -rf $TC_DIR
+        [ -d ~/.ccache ] && rm -rf ~/.ccache
+    fi
     if [ ! -d "$TC_DIR" ]; then
         _setup_toolchain
     else
