@@ -44,6 +44,7 @@ jobs:
         fetch-depth: 1
 
     - name: Clone kernel source
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
 
     - name: Cache Toolchain
