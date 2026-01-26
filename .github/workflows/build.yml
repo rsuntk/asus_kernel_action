@@ -23,6 +23,14 @@ on:
         description: 'Disable Thermal Configs'
         type: boolean
         default: true
+      BUILD_DEFCONFIG:
+        description: 'Build minimal defconfig'
+        type: boolean
+        default: false
+      UPDATE_TOOLCHAIN:
+        description: 'Update toolchain cache'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -64,7 +72,7 @@ jobs:
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
       run: bash ./build.sh --fetch-toolchains
 
     - name: Send Telegram notifier
@@ -82,7 +90,7 @@ jobs:
             Date: ${{ steps.buildKernel.outputs.currDate }}
             KernelSU: ${{ github.event.inputs.KSU }}
             Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
-
+        
     - name: Build Kernel
       env:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
