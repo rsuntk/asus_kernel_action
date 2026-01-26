@@ -76,6 +76,7 @@ jobs:
       run: bash ./build.sh --fetch-toolchains
 
     - name: Send Telegram notifier
+      if: github.event.inputs.BUILD_DEFCONFIG != 'true'
       continue-on-error: true
       uses: appleboy/telegram-action@master
       with:
@@ -90,8 +91,15 @@ jobs:
             Date: ${{ steps.buildKernel.outputs.currDate }}
             KernelSU: ${{ github.event.inputs.KSU }}
             Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
-        
+
+    - name: Build defconfig
+      if: github.event.inputs.BUILD_DEFCONFIG == 'true'
+      env:
+        DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
+      run: bash ./build.sh --regen-defconfig
+
     - name: Build Kernel
+      if: github.event.inputs.BUILD_DEFCONFIG != 'true' 
       env:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -107,9 +115,18 @@ jobs:
         if [[ "$KSU" == "true" ]]; then
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
         fi
-        bash ../build.sh
+        [ "${{ github.event.inputs.UPDATE_TOOLCHAIN }}" != "true" ] && bash ../build.sh || echo "[-] Skip building, update toolchain"
 
-    - name: Upload Artifacts
+    - name: Upload kernel defconfig
+      if: github.event.inputs.BUILD_DEFCONFIG == true
+      uses: actions/upload-artifact@v4
+      with:
+        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
+        path: |
+          kernel_root/out/defconfig
+
+    - name: Upload kernel artifacts
+      if: github.event.inputs.BUILD_DEFCONFIG != true 
       uses: actions/upload-artifact@v4
       with:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
