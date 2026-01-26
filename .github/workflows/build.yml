@@ -65,6 +65,7 @@ jobs:
       run: chmod +x ./build.sh && bash ./build.sh --setup-deps
 
     - name: Setup Build Environment
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       id: buildKernel
       run: |
         cd kernel_root
@@ -77,7 +78,7 @@ jobs:
       run: bash ./build.sh --fetch-toolchains
 
     - name: Send Telegram notifier
-      if: github.event.inputs.BUILD_DEFCONFIG != 'true'
+      if: ${{ github.event.inputs.BUILD_DEFCONFIG != 'true' || github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
       continue-on-error: true
       uses: appleboy/telegram-action@master
       with:
