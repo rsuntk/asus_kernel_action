@@ -8,7 +8,7 @@ SECONDS=0
 USER="rsuntk"
 HOSTNAME="kernel-worker"
 DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
-TC_DIR="$HOME/gcc-14.2.0-nolibc"
+TC_DIR="$HOME/gcc-15.2.0-nolibc"
 OUT_DIR="$(pwd)/out"
 
 # Colors for output
