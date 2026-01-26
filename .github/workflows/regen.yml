@@ -1,0 +1,57 @@
+name: Build Kernel
+on:
+  workflow_dispatch:
+    inputs:
+      REPO:
+        description: 'Kernel repository'
+        default: 'rsuntk/android_kernel_asus_sdm660'
+        required: true
+      BRANCH:
+        description: 'Kernel branch'
+        default: 'master'
+        required: true
+      DEVICE_TARGET:
+        description: 'Device to build'
+        default: 'X01BD'
+        type: choice
+        options: [X01BD, X00TD]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set Timezone
+      run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Clone kernel source
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+
+    - name: Prepare Dependencies
+      run: chmod +x ./build.sh && bash ./build.sh --setup-deps
+
+    - name: Setup Build Environment
+      id: buildKernel
+      run: |
+        cd kernel_root
+        gitsha1=$(git rev-parse --short HEAD)
+        echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+        echo "currDate=$(date)" >> $GITHUB_OUTPUT
+
+    - name: Fetch Toolchains
+      run: bash ./build.sh --fetch-toolchains
+
+    - name: Build defconfig
+      env:
+        DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
+      run: bash ./build.sh --regen-defconfig
+
+    - name: Upload kernel defconfig
+      uses: actions/upload-artifact@v4
+      with:
+        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
+        path: |
+          kernel_root/out/defconfig

@@ -23,10 +23,6 @@ on:
         description: 'Disable Thermal Configs'
         type: boolean
         default: true
-      BUILD_DEFCONFIG:
-        description: 'Build minimal defconfig'
-        type: boolean
-        default: false
       UPDATE_TOOLCHAIN:
         description: 'Update toolchain cache'
         type: boolean
@@ -75,10 +71,12 @@ jobs:
 
     - name: Fetch Toolchains
       if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
+      env:
+        UPDATE_TOOLCHAINS: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
       run: bash ./build.sh --fetch-toolchains
 
     - name: Send Telegram notifier
-      if: ${{ github.event.inputs.BUILD_DEFCONFIG != 'true' || github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       continue-on-error: true
       uses: appleboy/telegram-action@master
       with:
@@ -94,14 +92,8 @@ jobs:
             KernelSU: ${{ github.event.inputs.KSU }}
             Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
 
-    - name: Build defconfig
-      if: github.event.inputs.BUILD_DEFCONFIG == 'true'
-      env:
-        DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
-      run: bash ./build.sh --regen-defconfig
-
     - name: Build Kernel
-      if: ${{ github.event.inputs.BUILD_DEFCONFIG != 'true' || github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       env:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -119,16 +111,7 @@ jobs:
         fi
         bash ../build.sh
 
-    - name: Upload kernel defconfig
-      if: github.event.inputs.BUILD_DEFCONFIG == true
-      uses: actions/upload-artifact@v4
-      with:
-        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
-        path: |
-          kernel_root/out/defconfig
-
     - name: Upload kernel artifacts
-      if: github.event.inputs.BUILD_DEFCONFIG != true 
       uses: actions/upload-artifact@v4
       with:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}

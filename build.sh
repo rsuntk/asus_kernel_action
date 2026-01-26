@@ -78,13 +78,22 @@ setup_deps() {
 }
 
 # --- Toolchain Setup ---
-setup_toolchain() {
-    [ -d "$TC_DIR" ] && rm -rf $TC_DIR
+_setup_toolchain() {
     msg "Downloading GCC 15.2.0..."
     wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/15.2.0/x86_64-gcc-15.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
     tar -xzf /tmp/gcc.tar.gz -C "$HOME"
     rm /tmp/gcc.tar.gz
     msg "Toolchain extracted to $TC_DIR"
+}
+
+setup_toolchain() {
+    [ "$UPDATE_TOOLCHAINS" = "true" ] && rm -rf $TC_DIR
+    if [ ! -d "$TC_DIR" ]; then
+        _setup_toolchain
+    else
+        msg "Toolchain already exist"
+    fi
+    exit 0
 }
 
 # --- Regenerate savedefconfig ---
