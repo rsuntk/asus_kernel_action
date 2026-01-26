@@ -90,7 +90,10 @@ setup_toolchain() {
     if [ "$UPDATE_TOOLCHAINS" = "true" ]; then
         msg "Cleaning up old toolchains cache.."
         rm -rf $TC_DIR
-        [ -d ~/.ccache ] && rm -rf ~/.ccache
+        if [ -d ~/.ccache ]; then
+            rm -rf ~/.ccache
+            mkdir -p ~/.ccache
+        fi
     fi
     if [ ! -d "$TC_DIR" ]; then
         _setup_toolchain
