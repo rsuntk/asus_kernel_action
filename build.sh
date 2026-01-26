@@ -81,7 +81,7 @@ setup_deps() {
 setup_toolchain() {
     if [ ! -d "$TC_DIR" ]; then
         msg "Downloading GCC 14.2.0..."
-        wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/14.2.0/x86_64-gcc-14.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
+        wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/15.2.0/x86_64-gcc-15.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
         tar -xzf /tmp/gcc.tar.gz -C "$HOME"
         rm /tmp/gcc.tar.gz
         msg "Toolchain extracted to $TC_DIR"
