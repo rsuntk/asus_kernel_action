@@ -113,7 +113,6 @@ regen_defconfig() {
     make $BUILD_FLAGS savedefconfig
 
     msg "Done!"
-    exit 0
 }
 
 # --- Arguments Check ---
@@ -155,7 +154,12 @@ BUILD_FLAGS="O=$OUT_DIR ARCH=arm64 -j$(nproc --all)"
 
 # --- Build Process ---
 if [ "$1" = "--regen-defconfig" ]; then
+    export LLVM=1
+    export LLVM_IAS=1
+    export PATH=$HOME/clang/bin:$PATH
+    export LD_LIBRARY_PATH=$HOME/clang/lib
     regen_defconfig
+    exit 0
 fi
 
 mkdir -p "$OUT_DIR"
