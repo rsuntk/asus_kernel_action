@@ -40,9 +40,6 @@ jobs:
         echo "buildDetails=$(make kernelversion)-${{ inputs.device }}_$gitsha1" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
-    - name: Fetch Toolchains
-      run: wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/105aba85d97a53d364585ca755752dae054b49e8/clang-r584948b.tar.gz -O /tmp/clang.tar.gz && mkdir ~/clang && tar -xf /tmp/clang.tar.gz -C ~/clang
-
     - name: Build savedefconfig for ${{ inputs.device }}
       env:
         DEVICE_TARGET: ${{ inputs.device }}
