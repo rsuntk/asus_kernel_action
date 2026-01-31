@@ -19,6 +19,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: [X00TD, X01BD]
+      fail-fast: false
     steps:
     - name: Set Timezone
       run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
@@ -44,14 +48,17 @@ jobs:
     - name: Fetch Toolchains
       run: wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/105aba85d97a53d364585ca755752dae054b49e8/clang-r584948b.tar.gz -O /tmp/clang.tar.gz && mkdir ~/clang && tar -xf /tmp/clang.tar.gz -C ~/clang
 
-    - name: Build defconfig
+    - name: Build savedefconfig for ${{ matrix.device }}
       env:
-        DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
-      run: cd kernel_root && bash ../build.sh --regen-defconfig
+        DEVICE_TARGET: ${{ matrix.device }}
+      run: |
+        cd kernel_root
+        bash ../build.sh --regen-defconfig
+        mv out/defconfig out/${{ matrix.device }}_defconfig
 
     - name: Upload kernel defconfig
       uses: actions/upload-artifact@v4
       with:
         name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
         path: |
-          kernel_root/out/defconfig
+          kernel_root/out/*_defconfig
