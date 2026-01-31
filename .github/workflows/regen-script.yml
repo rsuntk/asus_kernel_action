@@ -1,23 +1,23 @@
-name: Build savedefconfig
+name: Main savedefconfig script
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      REPO:
+      repo:
         description: 'Kernel repository'
-        default: 'rsuntk/android_kernel_asus_sdm660'
+        type: string
         required: true
-      BRANCH:
+      branch:
         description: 'Kernel branch'
-        default: 'master'
+        type: string
+        required: true
+      device:
+        description: 'Target device'
+        type: string
         required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        device: [X00TD, X01BD]
-      fail-fast: false
     steps:
     - name: Set Timezone
       run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
@@ -27,7 +27,7 @@ jobs:
         fetch-depth: 1
 
     - name: Clone kernel source
-      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+      run: git clone --depth=1 --single-branch -b ${{ inputs.branch }} https://github.com/${{ inputs.repo }} kernel_root
 
     - name: Prepare Dependencies
       run: chmod +x ./build.sh && bash ./build.sh --setup-deps
@@ -37,23 +37,23 @@ jobs:
       run: |
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
-        echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+        echo "buildDetails=$(make kernelversion)-${{ inputs.device }}_$gitsha1" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
       run: wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/105aba85d97a53d364585ca755752dae054b49e8/clang-r584948b.tar.gz -O /tmp/clang.tar.gz && mkdir ~/clang && tar -xf /tmp/clang.tar.gz -C ~/clang
 
-    - name: Build savedefconfig for ${{ matrix.device }}
+    - name: Build savedefconfig for ${{ inputs.device }}
       env:
-        DEVICE_TARGET: ${{ matrix.device }}
+        DEVICE_TARGET: ${{ inputs.device }}
       run: |
         cd kernel_root
         bash ../build.sh --regen-defconfig
-        mv out/defconfig out/${{ matrix.device }}_defconfig
+        mv out/defconfig out/${{ inputs.device }}_defconfig
 
     - name: Upload kernel defconfig
       uses: actions/upload-artifact@v4
       with:
         name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
         path: |
-          kernel_root/out/*_defconfig
+          kernel_root/out/${{ inputs.device }}_defconfig
