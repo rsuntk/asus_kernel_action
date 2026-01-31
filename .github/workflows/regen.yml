@@ -1,0 +1,25 @@
+name: Build savedefconfig
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Kernel repository link'
+        default: 'rsuntk/android_kernel_asus_sdm660'
+        required: true
+      branch:
+        description: 'Kernel repository branch'
+        default: 'master'
+        required: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - device: X00TD
+          - device: X01BD
+    uses: ./.github/workflows/regen-script.yml
+    with:
+      repo: ${{ inputs.repo }}
+      branch: ${{ inputs.branch }}
+      ksu: ${{ matrix.device }}
