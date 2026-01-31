@@ -10,11 +10,6 @@ on:
         description: 'Kernel branch'
         default: 'master'
         required: true
-      DEVICE_TARGET:
-        description: 'Device to build'
-        default: 'X01BD'
-        type: choice
-        options: [X01BD, X00TD]
 
 jobs:
   build:
