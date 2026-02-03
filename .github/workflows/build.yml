@@ -47,8 +47,8 @@ jobs:
       id: cache-toolchain
       uses: actions/cache@v4
       with:
-        path: ~/gcc-15.2.0-nolibc
-        key: gcc-15.2.0-nolibc-aarch64
+        path: ~/clang-22
+        key: llvm-22-aosp
 
     - name: Cache ccache
       uses: actions/cache@v4

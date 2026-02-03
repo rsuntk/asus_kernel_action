@@ -8,7 +8,7 @@ SECONDS=0
 USER="rsuntk"
 HOSTNAME="kernel-worker"
 DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
-TC_DIR="$HOME/gcc-15.2.0-nolibc"
+TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 
 # Colors for output
@@ -79,10 +79,12 @@ setup_deps() {
 
 # --- Toolchain Setup ---
 _setup_toolchain() {
-    msg "Downloading GCC 15.2.0..."
-    wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/15.2.0/x86_64-gcc-15.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
-    tar -xzf /tmp/gcc.tar.gz -C "$HOME"
-    rm /tmp/gcc.tar.gz
+    msg "Downloading AOSP-LLVM 22.0.1..."
+    #wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/15.2.0/x86_64-gcc-15.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
+    wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/105aba85d97a53d364585ca755752dae054b49e8/clang-r584948b.tar.gz -O /tmp/clang.tar.gz
+    [ ! -d "$TC_DIR" ] && mkdir -p "$TC_DIR"
+    tar -xzf /tmp/clang.tar.gz -C "$TC_DIR"
+    rm /tmp/clang.tar.gz
     msg "Toolchain extracted to $TC_DIR"
 }
 
@@ -138,11 +140,11 @@ esac
 # --- Build Environment ---
 export KBUILD_BUILD_USER=$USER
 export KBUILD_BUILD_HOST=$HOSTNAME
-export CROSS_COMPILE="$TC_DIR/aarch64-linux/bin/aarch64-linux-"
-export LD_LIBRARY_PATH="$TC_DIR/aarch64-linux/lib"
+export PATH="$TC_DIR/bin:$PATH"
+export LD_LIBRARY_PATH="$TC_DIR/lib"
 export KCFLAGS="-w"
-export LLVM_IAS=0
-unset LLVM
+export LLVM_IAS=1
+export LLVM=1
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
@@ -154,10 +156,6 @@ BUILD_FLAGS="O=$OUT_DIR ARCH=arm64 -j$(nproc --all)"
 
 # --- Build Process ---
 if [ "$1" = "--regen-defconfig" ]; then
-    export LLVM=1
-    export LLVM_IAS=1
-    export PATH=$HOME/clang/bin:$PATH
-    export LD_LIBRARY_PATH=$HOME/clang/lib
     regen_defconfig
     exit 0
 fi
