@@ -142,7 +142,6 @@ export KBUILD_BUILD_USER=$USER
 export KBUILD_BUILD_HOST=$HOSTNAME
 export PATH="$TC_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$TC_DIR/lib"
-export KCFLAGS="-w"
 export LLVM_IAS=1
 export LLVM=1
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
