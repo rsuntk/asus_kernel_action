@@ -4,11 +4,11 @@ on:
     inputs:
       REPO:
         description: 'Kernel repository'
-        default: 'rsuntk/android_kernel_asus_sdm660'
+        default: 'rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
       BRANCH:
         description: 'Kernel branch'
-        default: 'master'
+        default: 'lineage-23.2'
         required: true
       DEVICE_TARGET:
         description: 'Device to build'
@@ -71,11 +71,11 @@ jobs:
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
 
-        if [[ "${{ inputs.BUILD_RELEASE }}" = "true" ]]; then
-          sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" localversion
-          echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1-NIGHTLY" >> $GITHUB_OUTPUT
+        if [[ "${{ inputs.BUILD_RELEASE }}" = "false" ]]; then
+          sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
+          echo "buildDetails=Perlica-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
         else
-          echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+          echo "buildDetails=Perlica-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)" >> $GITHUB_OUTPUT
         fi
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
