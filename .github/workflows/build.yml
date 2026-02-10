@@ -23,6 +23,10 @@ on:
         description: 'Disable Thermal Configs'
         type: boolean
         default: true
+      BUILD_RELEASE:
+        description: 'Build non-nightly'
+        type: boolean
+        default: false
       UPDATE_TOOLCHAIN:
         description: 'Update toolchain cache'
         type: boolean
@@ -66,7 +70,13 @@ jobs:
       run: |
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
-        echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+
+        if [[ "${{ inputs.BUILD_RELEASE }}" = "true" ]]; then
+          sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" localversion
+          echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1-NIGHTLY" >> $GITHUB_OUTPUT
+        else
+          echo "buildDetails=$(make kernelversion)-${{ github.event.inputs.DEVICE_TARGET }}_$gitsha1" >> $GITHUB_OUTPUT
+        fi
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
@@ -84,6 +94,7 @@ jobs:
           token: ${{ secrets.TG_TOKEN }}
           message: |
             Build started!
+            RELEASE: ${{ github.event.inputs.BUILD_RELEASE }}
 
             Repository: ${{ github.event.inputs.REPO }}
             Branch: ${{ github.event.inputs.BRANCH }}
@@ -100,6 +111,7 @@ jobs:
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         KSU: ${{ github.event.inputs.KSU }}
+        CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
@@ -117,5 +129,4 @@ jobs:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
         path: |
           kernel_root/out/arch/arm64/boot/Image.gz-dtb
-          kernel_root/*.zip
           kernel_root/out/.config
