@@ -150,7 +150,7 @@ DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 [ "$APPLY_WORKAROUND" = "true" ] && disable_thermal_configs "$DEFCONFIG"
 
 COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "untracked")
-ZIPNAME="rsuntk_$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT_HASH.zip"
+[ -z "$CI_ZIPNAME" ] && ZIPNAME="rsuntk_$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT_HASH.zip" || ZIPNAME=$CI_ZIPNAME
 BUILD_FLAGS="O=$OUT_DIR ARCH=arm64 -j$(nproc --all)"
 
 # --- Build Process ---
