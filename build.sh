@@ -10,6 +10,7 @@ HOSTNAME="kernel-worker"
 DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
 TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
+COMP_LOG="$OUT_DIR/compilation.log"
 
 # Colors for output
 export TERM=xterm
@@ -38,7 +39,7 @@ send_telegram() {
     local msg_bar="Device: ${DEVICE_TARGET}
 MD5: ${md5}
 
-Build success in ${time} minutes"
+Build done in ${time} minutes"
 
     msg "Uploading to Telegram..."
     curl -s -F document=@$file "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
@@ -162,7 +163,7 @@ fi
 mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
 make $BUILD_FLAGS "$DEFCONFIG"
-make $BUILD_FLAGS Image.gz-dtb
+make $BUILD_FLAGS Image.gz-dtb | tee -a $COMP_LOG
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
@@ -186,4 +187,5 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     msg "Output Zip: $ZIPNAME (md5: $MD5_CHECK)"
 else
     error "Compilation failed!"
+    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 fi
