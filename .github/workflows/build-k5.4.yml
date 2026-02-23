@@ -61,8 +61,8 @@ jobs:
       run: |
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
-        sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
-        echo "buildDetails=Perlica-X01BD-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
+        sed -i "s/-Awa/-Awa-Nightly@$gitsha1/g" $(pwd)/localversion
+        echo "buildDetails=Awa-X01BD-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
