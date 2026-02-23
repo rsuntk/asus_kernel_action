@@ -1,0 +1,118 @@
+name: Build Kernel (5.4)
+on:
+  workflow_dispatch:
+    inputs:
+      REPO:
+        description: 'Kernel repository'
+        default: 'rsuntk/android_kernel_asus_X01BD-5.4'
+        required: true
+      BRANCH:
+        description: 'Kernel branch'
+        default: 'X01BD-bringup'
+        required: true
+      KSU:
+        description: 'Add KernelSU support'
+        type: boolean
+        default: false
+      APPLY_WORKAROUND:
+        description: 'Disable Thermal Configs'
+        type: boolean
+        default: true
+      UPDATE_TOOLCHAIN:
+        description: 'Update toolchain cache'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set Timezone
+      run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Clone kernel source
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+
+    - name: Cache Toolchain
+      id: cache-toolchain
+      uses: actions/cache@v4
+      with:
+        path: ~/clang-22
+        key: llvm-22-aosp
+
+    - name: Cache ccache
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ccache-kernel-${{ github.sha }}
+        restore-keys: ccache-kernel-
+
+    - name: Prepare Dependencies
+      run: chmod +x ./build.sh && bash ./build.sh --setup-deps
+
+    - name: Setup Build Environment
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      id: buildKernel
+      run: |
+        cd kernel_root
+        gitsha1=$(git rev-parse --short HEAD)
+        sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
+        echo "buildDetails=Perlica-X01BD-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
+        echo "currDate=$(date)" >> $GITHUB_OUTPUT
+
+    - name: Fetch Toolchains
+      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
+      env:
+        UPDATE_TOOLCHAINS: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
+      run: bash ./build.sh --fetch-toolchains
+
+    - name: Send Telegram notifier
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      continue-on-error: true
+      uses: appleboy/telegram-action@master
+      with:
+          to: ${{ secrets.TG_CHAT_ID }}
+          token: ${{ secrets.TG_TOKEN }}
+          message: |
+            Build started!
+            RELEASE: false (k5.4)
+
+            Repository: ${{ github.event.inputs.REPO }}
+            Branch: ${{ github.event.inputs.BRANCH }}
+            Device: X01BD
+            Date: ${{ steps.buildKernel.outputs.currDate }}
+            KernelSU: ${{ github.event.inputs.KSU }}
+            Workaround: ${{ github.event.inputs.APPLY_WORKAROUND }}
+
+    - name: Build Kernel
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      env:
+        TG_TOKEN: ${{ secrets.TG_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        DEVICE_TARGET: X01BD
+        APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
+        KSU: ${{ github.event.inputs.KSU }}
+        CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
+      run: |
+        cd kernel_root
+        if [ ! -d ~/.ccache ]; then
+          mkdir -p ~/.ccache
+        fi
+        # Handle KernelSU
+        if [[ "$KSU" == "true" ]]; then
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+        fi
+        bash ../build.sh
+
+    - name: Upload kernel artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
+        path: |
+          kernel_root/out/arch/arm64/boot/Image.gz-dtb
+          kernel_root/out/.config
