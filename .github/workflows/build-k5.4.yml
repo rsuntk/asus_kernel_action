@@ -98,6 +98,7 @@ jobs:
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
+        IS_K5_4: "true"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
