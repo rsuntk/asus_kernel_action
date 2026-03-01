@@ -166,6 +166,7 @@ make_wrap() {
     msg "Starting compilation for $DEVICE_TARGET..."
     make $BUILD_FLAGS "$@"
     make $BUILD_FLAGS | tee -a $COMP_LOG
+    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 }
 
 [ $IS_K5_4 = "true" ] && make_wrap gki_defconfig vendor/asus/X01BD.config || make_wrap "$DEFCONFIG"
@@ -192,5 +193,4 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     msg "Output Zip: $ZIPNAME (md5: $MD5_CHECK)"
 else
     error "Compilation failed!"
-    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 fi
