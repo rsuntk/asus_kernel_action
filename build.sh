@@ -11,6 +11,7 @@ DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
 TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 COMP_LOG="$OUT_DIR/compilation.log"
+IS_K5_4=${IS_K5_4:-"false"}
 
 # Colors for output
 export TERM=xterm
@@ -160,10 +161,14 @@ if [ "$1" = "--regen-defconfig" ]; then
     exit 0
 fi
 
-mkdir -p "$OUT_DIR"
-msg "Starting compilation for $DEVICE_TARGET..."
-make $BUILD_FLAGS "$DEFCONFIG"
-make $BUILD_FLAGS Image.gz-dtb | tee -a $COMP_LOG
+make_wrap() {
+    mkdir -p "$OUT_DIR"
+    msg "Starting compilation for $DEVICE_TARGET..."
+    make $BUILD_FLAGS "$@"
+    make $BUILD_FLAGS | tee -a $COMP_LOG
+}
+
+[ $IS_K5_4 = "true" ] && make_wrap "gki_defconfig vendor/asus/X01BD.config" || make_wrap "$DEFCONFIG"
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
