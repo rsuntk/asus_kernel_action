@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
       APPLY_WORKAROUND:
-        description: 'Disable Thermal Configs'
+        description: 'Disable Thermal Configs (decoy)'
         type: boolean
         default: true
       UPDATE_TOOLCHAIN:
@@ -95,7 +95,7 @@ jobs:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         DEVICE_TARGET: X01BD
-        APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
+        APPLY_WORKAROUND: false
         KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
         IS_K5_4: "true"
