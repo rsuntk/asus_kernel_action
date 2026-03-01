@@ -168,7 +168,7 @@ make_wrap() {
     make $BUILD_FLAGS | tee -a $COMP_LOG
 }
 
-[ $IS_K5_4 = "true" ] && make_wrap "gki_defconfig vendor/asus/X01BD.config" || make_wrap "$DEFCONFIG"
+[ $IS_K5_4 = "true" ] && make_wrap gki_defconfig vendor/asus/X01BD.config || make_wrap "$DEFCONFIG"
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
