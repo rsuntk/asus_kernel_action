@@ -76,7 +76,7 @@ jobs:
         gitsha1=$(git rev-parse --short HEAD)
 
         if [[ "${{ inputs.BUILD_RELEASE }}" = "false" ]]; then
-          sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
+          [ -d $(pwd)/localversion ] && sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
           echo "buildDetails=Perlica-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
         else
           echo "buildDetails=Perlica-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)" >> $GITHUB_OUTPUT
