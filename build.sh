@@ -150,7 +150,7 @@ export LLVM=1
 
 FRAGMENTS=""
 [ "$USE_NEW_CAMERA" = false ] && FRAGMENTS+=" vendor/asus/legacy_camera.config"
-DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig $FRAGMENTS"
+DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
 [ "$APPLY_WORKAROUND" = "true" ] && disable_thermal_configs "$DEFCONFIG"
@@ -173,7 +173,7 @@ make_wrap() {
     send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 }
 
-[ $IS_K5_4 = "true" ] && make_wrap gki_defconfig vendor/asus/X01BD.config || make_wrap "$DEFCONFIG"
+[ $IS_K5_4 = "true" ] && make_wrap gki_defconfig vendor/asus/X01BD.config || make_wrap "$DEFCONFIG $FRAGMENTS"
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
