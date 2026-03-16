@@ -12,6 +12,7 @@ TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 COMP_LOG="$OUT_DIR/compilation.log"
 IS_K5_4=${IS_K5_4:-"false"}
+USE_NEW_CAMERA=${USE_NEW_CAMERA:-"false"}
 
 # Colors for output
 export TERM=xterm
@@ -146,7 +147,10 @@ export PATH="$TC_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$TC_DIR/lib"
 export LLVM_IAS=1
 export LLVM=1
-DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
+
+FRAGMENTS=""
+[ "$USE_NEW_CAMERA" = false ] && FRAGMENTS+=" vendor/asus/legacy_camera.config"
+DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig $FRAGMENTS"
 
 # --- Apply Config Patches ---
 [ "$APPLY_WORKAROUND" = "true" ] && disable_thermal_configs "$DEFCONFIG"
