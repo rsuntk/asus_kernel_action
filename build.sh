@@ -149,8 +149,8 @@ export LLVM_IAS=1
 export LLVM=1
 
 FRAGMENTS=""
-[ "$USE_NEW_CAMERA" = false ] && FRAGMENTS+=" vendor/asus/legacy_camera.config"
-DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
+[ "$USE_NEW_CAMERA" = "false" ] && FRAGMENTS+="vendor/asus/legacy_camera.config"
+[ "$IS_K5_4" = "true" ] && DEFCONFIG="vendor/asus/${DEVICE_TARGET}.config" || DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
 [ "$APPLY_WORKAROUND" = "true" ] && disable_thermal_configs "$DEFCONFIG"
@@ -165,15 +165,11 @@ if [ "$1" = "--regen-defconfig" ]; then
     exit 0
 fi
 
-make_wrap() {
-    mkdir -p "$OUT_DIR"
-    msg "Starting compilation for $DEVICE_TARGET..."
-    make $BUILD_FLAGS "$@"
-    make $BUILD_FLAGS | tee -a $COMP_LOG
-    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
-}
-
-[ $IS_K5_4 = "true" ] && make_wrap gki_defconfig vendor/asus/X01BD.config || make_wrap "$DEFCONFIG $FRAGMENTS"
+mkdir -p "$OUT_DIR"
+msg "Starting compilation for $DEVICE_TARGET..."
+make $BUILD_FLAGS $DEFCONFIG $FRAGMENTS
+make $BUILD_FLAGS | tee -a $COMP_LOG
+send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
