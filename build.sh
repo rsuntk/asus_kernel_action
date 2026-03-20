@@ -11,8 +11,6 @@ DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
 TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 COMP_LOG="$OUT_DIR/compilation.log"
-IS_K5_4=${IS_K5_4:-"false"}
-USE_NEW_CAMERA=${USE_NEW_CAMERA:-"false"}
 
 # Colors for output
 export TERM=xterm
@@ -147,10 +145,7 @@ export PATH="$TC_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$TC_DIR/lib"
 export LLVM_IAS=1
 export LLVM=1
-
-FRAGMENTS=""
-[ "$USE_NEW_CAMERA" = "false" ] && FRAGMENTS+="vendor/asus/legacy_camera.config"
-[ "$IS_K5_4" = "true" ] && DEFCONFIG="vendor/asus/${DEVICE_TARGET}.config" || DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
+DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
 [ "$APPLY_WORKAROUND" = "true" ] && disable_thermal_configs "$DEFCONFIG"
@@ -167,7 +162,7 @@ fi
 
 mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
-make $BUILD_FLAGS $DEFCONFIG $FRAGMENTS
+make $BUILD_FLAGS $DEFCONFIG
 make $BUILD_FLAGS | tee -a $COMP_LOG
 send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 
