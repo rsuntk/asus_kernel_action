@@ -75,7 +75,6 @@ jobs:
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
         CODENAME=$(cat ../codename)
-	echo "Codename: $CODENAME"
 
         if [[ "${{ inputs.BUILD_RELEASE }}" = "false" ]]; then
           [ -d $(pwd)/localversion ] && sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
