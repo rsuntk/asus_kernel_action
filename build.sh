@@ -11,6 +11,7 @@ DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
 TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 COMP_LOG="$OUT_DIR/compilation.log"
+KCFLAGS_W=${KCFLAGS_W:-"false"}
 
 # Colors for output
 export TERM=xterm
@@ -145,6 +146,8 @@ export PATH="$TC_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$TC_DIR/lib"
 export LLVM_IAS=1
 export LLVM=1
+msg "KCFLAGS=-w is $KCFLAGS_W"
+[ "$KCFLAGS_W" = "true" ] && export KCFLAGS=-w
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
