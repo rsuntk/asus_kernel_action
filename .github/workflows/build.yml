@@ -35,6 +35,10 @@ on:
         description: 'Update toolchain cache'
         type: boolean
         default: false
+      KCFLAGS_W:
+        description: 'Enable KCFLAGS=-w'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -117,6 +121,7 @@ jobs:
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
+        KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
