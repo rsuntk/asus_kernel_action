@@ -47,7 +47,7 @@ jobs:
     - name: Set Timezone
       run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 1
 
@@ -57,13 +57,13 @@ jobs:
 
     - name: Cache Toolchain
       id: cache-toolchain
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/clang-22
         key: llvm-22-aosp
 
     - name: Cache ccache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.ccache
         key: ccache-kernel-${{ github.sha }}
@@ -134,7 +134,7 @@ jobs:
         bash ../build.sh
 
     - name: Upload kernel artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
         path: |
