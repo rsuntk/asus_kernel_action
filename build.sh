@@ -83,7 +83,7 @@ setup_deps() {
 _setup_toolchain() {
     msg "Downloading AOSP-LLVM 22.0.1..."
     #wget -q https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/15.2.0/x86_64-gcc-15.2.0-nolibc-aarch64-linux.tar.gz -O /tmp/gcc.tar.gz
-    wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/105aba85d97a53d364585ca755752dae054b49e8/clang-r584948b.tar.gz -O /tmp/clang.tar.gz
+    wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/9b144befdfd93b90e02c663504fb9f4b95f9faf8/clang-r596125.tar.gz -O /tmp/clang.tar.gz
     [ ! -d "$TC_DIR" ] && mkdir -p "$TC_DIR"
     tar -xzf /tmp/clang.tar.gz -C "$TC_DIR"
     rm /tmp/clang.tar.gz
