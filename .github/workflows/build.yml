@@ -4,8 +4,12 @@ on:
     inputs:
       REPO:
         description: 'Kernel repository'
-        default: 'rsuntk/android_kernel_asus_sdm660-4.19'
+        default: 'rsuntk-asus-sdm660/android_kernel_asus_sdm660'
         required: true
+      USE_PRIVATE_REPO:
+        description: 'Use Private Repository'
+        type: boolean
+        default: false
       BRANCH:
         description: 'Kernel branch'
         default: 'lineage-23.2'
@@ -53,7 +57,12 @@ jobs:
 
     - name: Clone kernel source
       if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
-      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+      run: |
+        if [[ "${{ inputs.USE_PRIVATE_REPO }}" == "true" ]]; then
+          git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} ${{ secrets.REPO_TOKEN }} kernel_root
+        else
+          git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+        fi
 
     - name: Cache Toolchain
       id: cache-toolchain
