@@ -6,7 +6,7 @@ set -e
 # --- Configuration ---
 SECONDS=0
 USER="rsuntk"
-HOSTNAME="kernel-worker"
+HOSTNAME="github"
 DEVICE_TARGET=${DEVICE_TARGET:-"X01BD"}
 TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
@@ -32,6 +32,7 @@ send_telegram() {
     local md5="$2"
     local total_seconds="$3"
     local status="$4"
+    local CC="$5"
 
     local h=$((total_seconds / 3600))
     local m=$(( (total_seconds % 3600) / 60 ))
@@ -42,9 +43,12 @@ send_telegram() {
         return
     fi
 
+    CC_VERSION=$($CC -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$//')
+
     # HTML formatted message
-    local msg_bar="build $status in ${h}h, ${m}m, ${s}s
+    local msg_bar="build $status in ${h}h ${m}m ${s}s
 Device: <code>${DEVICE_TARGET}</code>
+Compiler: $CC_VERSION
 md5: <code>${md5}</code>"
 
     msg "Uploading to Telegram..."
@@ -152,7 +156,15 @@ export PATH="$TC_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$TC_DIR/lib"
 export LLVM_IAS=1
 export LLVM=1
+
 msg "KCFLAGS=-w is $KCFLAGS_W"
+
+if [ "$LLVM" == "1" ]; then
+    __CC="$TC_DIR/bin/clang"
+else
+    __CC=$(find "$TC_DIR/bin" -name "aarch64-*-gcc" -type f | head -n 1)
+fi
+
 [ "$KCFLAGS_W" = "true" ] && export KCFLAGS=-w
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
@@ -188,7 +200,7 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     MD5_CHECK=$(md5sum "$ZIPNAME" | cut -d' ' -f1)
 
     # Trigger Telegram Upload
-    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS" "success"
+    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS" "success" "$__CC"
 
     [ "$DO_CLEAN" = "true" ] && rm -rf AnyKernel3 "$OUT_DIR/arch/arm64/boot"
 
@@ -196,5 +208,5 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     msg "Output Zip: $ZIPNAME (md5: $MD5_CHECK)"
 else
     error "Compilation failed!"
-    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS" "failed"
+    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS" "failed" "$__CC"
 fi
