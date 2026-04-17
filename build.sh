@@ -30,24 +30,30 @@ error() {
 send_telegram() {
     local file="$1"
     local md5="$2"
-    local time="$(($3 / 60))"
+    local total_seconds="$3"
+    local status="$4"
+
+    local h=$((total_seconds / 3600))
+    local m=$(( (total_seconds % 3600) / 60 ))
+    local s=$((total_seconds % 60))
 
     if [[ -z "$TG_TOKEN" || -z "$TG_CHAT_ID" ]]; then
         msg "Telegram credentials missing. Skipping upload."
         return
     fi
 
-    local msg_bar="Device: ${DEVICE_TARGET}
-MD5: ${md5}
-
-Build done in ${time} minutes"
+    # HTML formatted message
+    local msg_bar="build $status in ${h}h, ${m}m, ${s}s
+Device: <code>${DEVICE_TARGET}</code>
+md5: <code>${md5}</code>"
 
     msg "Uploading to Telegram..."
-    curl -s -F document=@$file "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
+    curl -s -F document=@"$file" "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
         -F chat_id="$TG_CHAT_ID" \
         -F "disable_web_page_preview=true" \
-        -F "parse_mode=markdownv2" \
+        -F "parse_mode=HTML" \
         -F caption="$msg_bar"
+    
     msg "Upload completed!"
 }
 
@@ -167,7 +173,6 @@ mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
 make $BUILD_FLAGS $DEFCONFIG
 make $BUILD_FLAGS | tee -a $COMP_LOG
-send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS"
 
 # --- Packaging & Upload ---
 if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
@@ -183,7 +188,7 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     MD5_CHECK=$(md5sum "$ZIPNAME" | cut -d' ' -f1)
 
     # Trigger Telegram Upload
-    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS"
+    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS" "success"
 
     [ "$DO_CLEAN" = "true" ] && rm -rf AnyKernel3 "$OUT_DIR/arch/arm64/boot"
 
@@ -191,4 +196,5 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     msg "Output Zip: $ZIPNAME (md5: $MD5_CHECK)"
 else
     error "Compilation failed!"
+    send_telegram "$COMP_LOG" "$(md5sum $COMP_LOG | cut -d' ' -f1)" "$SECONDS" "failed"
 fi
