@@ -1,0 +1,109 @@
+name: Build Kernel (parallel)
+on:
+  workflow_dispatch:
+    inputs:
+      REPO:
+        description: 'Kernel repository'
+        default: 'rsuntk/android_kernel_asus_sdm660-4.19'
+        required: true
+      BRANCH:
+        description: 'Kernel branch'
+        default: 'lineage-23.2'
+        required: true
+      KSU:
+        description: 'Add KernelSU support'
+        type: boolean
+        default: true
+      KSU_BRANCH:
+        description: 'KernelSU branch'
+        required: true
+        default: 'main'
+      UPDATE_TOOLCHAIN:
+        description: 'Update toolchain cache'
+        type: boolean
+        default: false
+      KCFLAGS_W:
+        description: 'Enable KCFLAGS=-w'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [X01BD, X00TD]
+
+    steps:
+    - name: Set Timezone
+      run: sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 1
+
+    - name: Clone kernel source
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+
+    - name: Cache Toolchain
+      id: cache-toolchain
+      uses: actions/cache@v5
+      with:
+        path: ~/clang-22
+        key: llvm-22-aosp
+
+    - name: Cache ccache
+      uses: actions/cache@v5
+      with:
+        path: ~/.ccache
+        key: ccache-kernel-${{ github.sha }}
+        restore-keys: ccache-kernel-
+
+    - name: Prepare Dependencies
+      run: chmod +x ./build.sh && bash ./build.sh --setup-deps
+
+    - name: Setup Build Environment
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      id: buildKernel
+      run: |
+        cd kernel_root
+        gitsha1=$(git rev-parse --short HEAD)
+        CODENAME=$(cat ../codename)
+
+        echo "buildDetails=${{ matrix.device }}-4.19-$(date +%Y%m%d)_$(echo $gitsha1)" >> $GITHUB_OUTPUT
+        echo "currDate=$(date)" >> $GITHUB_OUTPUT
+
+    - name: Fetch Toolchains
+      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
+      env:
+        UPDATE_TOOLCHAINS: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
+      run: bash ./build.sh --fetch-toolchains
+
+    - name: Build Kernel
+      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      env:
+        TG_TOKEN: ${{ secrets.TG_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        DEVICE_TARGET: ${{ matrix.device }}
+        KSU: ${{ github.event.inputs.KSU }}
+        CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
+        KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
+      run: |
+        cd kernel_root
+        if [ ! -d ~/.ccache ]; then
+          mkdir -p ~/.ccache
+        fi
+        # Handle KernelSU
+        if [[ "$KSU" == "true" ]]; then
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s ${{ inputs.KSU_BRANCH }}
+        fi
+        bash ../build.sh
+
+    - name: Upload kernel configs
+      uses: actions/upload-artifact@v5
+      with:
+        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
+        path: |
+          kernel_root/out/.config
