@@ -4,7 +4,7 @@ on:
     inputs:
       REPO:
         description: 'Kernel repository'
-        default: 'rsuntk-asus-sdm660/android_kernel_asus_sdm660'
+        default: 'rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
       USE_PRIVATE_REPO:
         description: 'Use Private Repository'
@@ -124,8 +124,6 @@ jobs:
     - name: Build Kernel
       if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       env:
-        TG_TOKEN: ${{ secrets.TG_TOKEN }}
-        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         KSU: ${{ github.event.inputs.KSU }}
