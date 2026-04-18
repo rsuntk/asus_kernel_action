@@ -48,7 +48,7 @@ send_telegram() {
     # HTML formatted message
     local msg_bar="build $status in ${h}h ${m}m ${s}s
 Device: <code>${DEVICE_TARGET}</code>
-Compiler: $CC_VERSION
+Compiler: <code>$CC_VERSION</code>
 md5: <code>${md5}</code>"
 
     msg "Uploading to Telegram..."
@@ -200,7 +200,7 @@ if [ -f "$OUT_DIR/arch/arm64/boot/Image.gz-dtb" ]; then
     MD5_CHECK=$(md5sum "$ZIPNAME" | cut -d' ' -f1)
 
     # Trigger Telegram Upload
-    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS" "success" "$__CC"
+    send_telegram "$(pwd)/$ZIPNAME" "$MD5_CHECK" "$SECONDS" "succeeded" "$__CC"
 
     [ "$DO_CLEAN" = "true" ] && rm -rf AnyKernel3 "$OUT_DIR/arch/arm64/boot"
 
