@@ -48,8 +48,8 @@ send_telegram() {
     # HTML formatted message
     local msg_bar="build $status in ${h}h ${m}m ${s}s
 Device: <code>${DEVICE_TARGET}</code>
-Compiler: <code>$CC_VERSION</code>
-md5: <code>${md5}</code>"
+md5: <code>${md5}</code>
+Compiler: $CC_VERSION"
 
     msg "Uploading to Telegram..."
     curl -s -F document=@"$file" "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
