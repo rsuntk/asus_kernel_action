@@ -21,8 +21,7 @@ on:
         options: [X01BD, X00TD]
       KSU:
         description: 'Add KernelSU support'
-        type: boolean
-        default: false
+        default: "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh"
       KSU_BRANCH:
         description: 'KernelSU branch'
         required: true
@@ -111,7 +110,6 @@ jobs:
       env:
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
         APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
-        KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
         KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
         EXTRA_CONFIG: "${{ github.event.inputs.EXTRA_CONFIG }}"
@@ -121,8 +119,8 @@ jobs:
           mkdir -p ~/.ccache
         fi
         # Handle KernelSU
-        if [[ "$KSU" == "true" ]]; then
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s ${{ inputs.KSU_BRANCH }}
+        if [[ "$KSU" != "NULL" ]]; then
+          curl -LSs "${{ github.event.inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
         fi
         bash ../build.sh
 
