@@ -43,6 +43,9 @@ on:
         description: 'Enable KCFLAGS=-w'
         type: boolean
         default: false
+      EXTRA_CONFIG:
+        description: 'Use Extra defconfig'
+        default: 'NULL'
 
 jobs:
   build:
@@ -111,6 +114,7 @@ jobs:
         KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
         KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
+        EXTRA_CONFIG: "${{ github.event.inputs.EXTRA_CONFIG }}"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
