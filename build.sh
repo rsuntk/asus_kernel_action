@@ -166,6 +166,7 @@ else
 fi
 
 [ "$KCFLAGS_W" = "true" ] && export KCFLAGS=-w
+[ "$EXTRA_CONFIG" != "NULL" ] && __EXTRA_CONFIG="$EXTRA_CONFIG" || __EXTRA_CONFIG=""
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Apply Config Patches ---
@@ -183,7 +184,7 @@ fi
 
 mkdir -p "$OUT_DIR"
 msg "Starting compilation for $DEVICE_TARGET..."
-make $BUILD_FLAGS $DEFCONFIG
+make $BUILD_FLAGS $DEFCONFIG $__EXTRA_CONFIG
 make $BUILD_FLAGS | tee -a $COMP_LOG
 
 # --- Packaging & Upload ---
