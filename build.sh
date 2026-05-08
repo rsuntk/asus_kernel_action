@@ -12,6 +12,7 @@ TC_DIR="$HOME/clang-22"
 OUT_DIR="$(pwd)/out"
 COMP_LOG="$OUT_DIR/compilation.log"
 KCFLAGS_W=${KCFLAGS_W:-"false"}
+APPLY_WORKAROUND=${APPLY_WORKAROUND:-"false"}
 DEFCONFIG="vendor/asus/${DEVICE_TARGET}_defconfig"
 
 # --- Colors ---
@@ -23,6 +24,29 @@ reset='\033[0m'
 
 msg() { echo -e "${blue}INFO: ${reset}$1"; }
 error() { echo -e "${red}ERROR: ${reset}$1" >&2; exit 1; }
+
+# --- Config Manipulation ---
+disable_thermal_configs() {
+    local target_config="arch/arm64/configs/$1"
+    
+    if [ ! -f "$target_config" ]; then
+        error "Defconfig $target_config not found!"
+    fi
+
+    msg "Applying thermal config patches to $1..."
+    
+    local configs=(
+        CONFIG_QCOM_SPMI_TEMP_ALARM
+        CONFIG_QTI_ADC_TM
+        CONFIG_QTI_VIRTUAL_SENSOR
+    )
+
+    for cfg in "${configs[@]}"; do
+        # Comment out the config if enabled
+        sed -i "s/^$cfg=[ym]/# $cfg is not set/g" "$target_config"
+    done
+    msg "Thermal configs disabled."
+}
 
 # --- Telegram Notification ---
 send_telegram() {
@@ -45,7 +69,6 @@ send_telegram() {
         -F chat_id="$TG_CHAT_ID" \
         -F "parse_mode=HTML" \
         -F "caption=$caption" > /dev/null
-    msg "Upload completed!"
 }
 
 # --- Toolchain Logic ---
@@ -88,7 +111,7 @@ prepare_env() {
     )
 }
 
-# --- Main Logic ---
+# --- Arguments Check ---
 case "${1:-}" in
     "--setup-deps")
         sudo apt update && sudo apt install -y aptitude bc bison ccache cpio curl flex git lz4 perl python-is-python3 tar wget libssl-dev
@@ -107,18 +130,21 @@ esac
 prepare_env
 mkdir -p "$OUT_DIR"
 
+# Apply the Thermal Disabler if requested
+if [[ "$APPLY_WORKAROUND" == "true" ]]; then
+    disable_thermal_configs "$DEFCONFIG"
+fi
+
 msg "Starting compilation for $DEVICE_TARGET..."
 make "${BUILD_ARGS[@]}" "$DEFCONFIG" "${EXTRA_CONFIG:-}"
 
 if make "${BUILD_ARGS[@]}" 2>&1 | tee "$COMP_LOG"; then
     msg "Build successful. Packaging..."
     
-    # Generate Zip Name
     COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "untracked")
     ZIPNAME="rsuntk_$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT.zip"
     IMG="$OUT_DIR/arch/arm64/boot/Image.gz-dtb"
 
-    # AnyKernel3 Processing
     git clone -q --depth=1 https://github.com/rsuntk/AnyKernel3 -b "$DEVICE_TARGET"
     cp "$IMG" AnyKernel3/
     (cd AnyKernel3 && zip -r9 "../$ZIPNAME" . -x ".git*" "README.md")
@@ -129,5 +155,5 @@ if make "${BUILD_ARGS[@]}" 2>&1 | tee "$COMP_LOG"; then
     echo -e "${green}Build completed in $((SECONDS / 60)) min(s).${reset}"
 else
     send_telegram "$COMP_LOG" "" "" "failed" "$TC_DIR/bin/clang"
-    error "Compilation failed! Check $COMP_LOG"
+    error "Compilation failed!"
 fi
