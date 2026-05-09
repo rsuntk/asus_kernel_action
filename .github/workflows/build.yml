@@ -6,10 +6,6 @@ on:
         description: 'Kernel repository'
         default: 'rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
-      USE_PRIVATE_REPO:
-        description: 'Use Private Repository'
-        type: boolean
-        default: false
       BRANCH:
         description: 'Kernel branch'
         default: 'lineage-23.2'
@@ -26,16 +22,12 @@ on:
         description: 'KernelSU branch'
         required: true
         default: 'main'
-      APPLY_WORKAROUND:
-        description: 'Disable Thermal Configs'
-        type: boolean
-        default: true
-      BUILD_RELEASE:
-        description: 'Build non-nightly'
-        type: boolean
-        default: false
       UPDATE_TOOLCHAIN:
         description: 'Update toolchain cache'
+        type: boolean
+        default: false
+      USE_GCC:
+        description: 'Use GCC for compilation instead of LLVM'
         type: boolean
         default: false
       KCFLAGS_W:
@@ -59,19 +51,27 @@ jobs:
 
     - name: Clone kernel source
       if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+
+    - name: Get Compiler option
+      id: curr_compiler
       run: |
-        if [[ "${{ inputs.USE_PRIVATE_REPO }}" == "true" ]]; then
-          git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} ${{ secrets.REPO_TOKEN }} kernel_root
+        if [[ "${{ inputs.USE_GCC }}" == "true" ]]; then
+          echo "tc_dir=$HOME/gcc-arm64" >> $GITHUB_OUTPUT
+          echo "cache_key=gcc-eva-arm64" >> $GITHUB_OUTPUT
+          echo "active_compiler=gcc" >> $GITHUB_OUTPUT
         else
-          git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+          echo "tc_dir=$HOME/clang-22" >> $GITHUB_OUTPUT
+          echo "cache_key=llvm-22-aosp" >> $GITHUB_OUTPUT
+          echo "active_compiler=llvm" >> $GITHUB_OUTPUT
         fi
 
     - name: Cache Toolchain
       id: cache-toolchain
       uses: actions/cache@v5
       with:
-        path: ~/clang-22
-        key: llvm-22-aosp
+        path: ${{ steps.curr_compiler.outputs.tc_dir }}
+        key: ${{ steps.curr_compiler.outputs.cache_key }}
 
     - name: Cache ccache
       uses: actions/cache@v5
@@ -91,28 +91,24 @@ jobs:
         gitsha1=$(git rev-parse --short HEAD)
         CODENAME=$(cat ../codename)
 
-        if [[ "${{ inputs.BUILD_RELEASE }}" = "false" ]]; then
-          [ -d $(pwd)/localversion ] && sed -i "s/-Perlica/-Perlica-Nightly@$gitsha1/g" $(pwd)/localversion
-          echo "buildDetails=$CODENAME-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
-        else
-          echo "buildDetails=$CODENAME-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)" >> $GITHUB_OUTPUT
-        fi
+        echo "buildDetails=$CODENAME-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
       if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
       env:
         UPDATE_TOOLCHAINS: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
+        COMP_OPTION: "${{ steps.curr_compiler.outputs.active_compiler }}"
       run: bash ./build.sh --fetch-toolchains
 
     - name: Build Kernel
       if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
       env:
         DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
-        APPLY_WORKAROUND: ${{ github.event.inputs.APPLY_WORKAROUND }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
         KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
         EXTRA_CONFIG: "${{ github.event.inputs.EXTRA_CONFIG }}"
+        COMP_OPTION: "${{ steps.curr_compiler.outputs.active_compiler }}"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
