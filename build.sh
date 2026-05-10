@@ -51,13 +51,19 @@ send_telegram() {
     local h=$((SECONDS / 3600)), m=$(((SECONDS % 3600) / 60)), s=$((SECONDS % 60))
     local cc_ver=$(echo $compiler | perl -pe 's/\(http.*?\)//gs' | sed 's/[[:space:]]*$//')
 
-    local caption="Build <b>$status</b> in ${h}h ${m}m ${s}s%0ADevice: <code>$DEVICE_TARGET</code>%0Amd5: <code>$md5</code>%0ACompiler: $cc_ver"
+    local msg_bar="build $status in ${h}h ${m}m ${s}s
+Device: <code>${DEVICE_TARGET}</code>
+md5: <code>${md5}</code>
+Compiler: $cc_ver"
 
     msg "Uploading to Telegram..."
     curl -s -F document=@"$file" "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
         -F chat_id="$TG_CHAT_ID" \
+        -F "disable_web_page_preview=true" \
         -F "parse_mode=HTML" \
-        -F "caption=$caption" >/dev/null
+        -F caption="$msg_bar"
+    
+    msg "Upload completed!"
 }
 
 # --- Toolchain Logic ---
@@ -120,11 +126,11 @@ if make "${BUILD_ARGS[@]}" 2>&1 | tee "$COMP_LOG"; then
     cp "$IMG" AnyKernel3/
     (cd AnyKernel3 && zip -r9 "../$ZIPNAME" . -x ".git*" "README.md")
 
-    send_telegram "$(pwd)/$ZIPNAME" "succeeded" $ACTIVE_COMPILER
+    send_telegram "$(pwd)/$ZIPNAME" "succeeded" "$ACTIVE_COMPILER"
 
     [[ "${DO_CLEAN:-}" == "true" ]] && rm -rf AnyKernel3 "$OUT_DIR"
     echo -e "${green}Build completed in $((SECONDS / 60)) min(s).${reset}"
 else
-    send_telegram "$COMP_LOG" "failed" $ACTIVE_COMPILER
+    send_telegram "$COMP_LOG" "failed" "$ACTIVE_COMPILER"
     error "Compilation failed!"
 fi
