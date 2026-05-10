@@ -12,8 +12,7 @@ on:
         required: true
       KSU:
         description: 'Add KernelSU support'
-        type: boolean
-        default: true
+        default: "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh"
       KSU_BRANCH:
         description: 'KernelSU branch'
         required: true
@@ -26,6 +25,9 @@ on:
         description: 'Enable KCFLAGS=-w'
         type: boolean
         default: false
+      EXTRA_CONFIG:
+        description: 'Use Extra defconfig'
+        default: 'vendor/extra/ksu.config'
 
 jobs:
   build:
@@ -70,7 +72,6 @@ jobs:
       run: |
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
-        CODENAME=$(cat ../codename)
 
         echo "buildDetails=${{ matrix.device }}-4.19-$(date +%Y%m%d)_$(echo $gitsha1)" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
@@ -87,17 +88,17 @@ jobs:
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         DEVICE_TARGET: ${{ matrix.device }}
-        KSU: ${{ github.event.inputs.KSU }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
         KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
+        EXTRA_CONFIG: "${{ github.event.inputs.EXTRA_CONFIG }}"
       run: |
         cd kernel_root
         if [ ! -d ~/.ccache ]; then
           mkdir -p ~/.ccache
         fi
         # Handle KernelSU
-        if [[ "$KSU" == "true" ]]; then
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s ${{ inputs.KSU_BRANCH }}
+        if [[ "$KSU" != "NULL" ]]; then
+          curl -LSs "${{ github.event.inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
         fi
         bash ../build.sh
 
