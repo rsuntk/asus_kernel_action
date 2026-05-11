@@ -48,8 +48,10 @@ send_telegram() {
     fi
 
     local md5=$(md5sum "$file" | cut -d' ' -f1)
-    local h=$((SECONDS / 3600)), m=$(((SECONDS % 3600) / 60)), s=$((SECONDS % 60))
-    local cc_ver=$(echo $compiler | perl -pe 's/\(http.*?\)//gs' | sed 's/[[:space:]]*$//')
+    local h=$((SECONDS / 3600))
+    local m=$(((SECONDS % 3600) / 60))
+    local s=$((SECONDS % 60))
+    local cc_ver=$($compiler | perl -pe 's/\(http.*?\)//gs' | sed 's/[[:space:]]*$//')
 
     local msg_bar="build $status in ${h}h ${m}m ${s}s
 Device: <code>${DEVICE_TARGET}</code>
@@ -119,7 +121,7 @@ if make "${BUILD_ARGS[@]}" 2>&1 | tee "$COMP_LOG"; then
     msg "Build successful. Packaging..."
 
     COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "untracked")
-    ZIPNAME="rsuntk_$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT.zip"
+    ZIPNAME="$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT.zip"
     IMG="$OUT_DIR/arch/arm64/boot/Image.gz-dtb"
 
     git clone -q --depth=1 https://github.com/rsuntk/AnyKernel3 -b "$DEVICE_TARGET"
