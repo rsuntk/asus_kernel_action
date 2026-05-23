@@ -2,9 +2,9 @@ name: Build Kernel
 on:
   workflow_dispatch:
     inputs:
-      REPO:
-        description: 'Kernel repository'
-        default: 'rsuntk/android_kernel_asus_sdm660-4.19'
+      KERNEL_REPO:
+        description: 'Kernel URL repository'
+        default: 'https://github.com/rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
       BRANCH:
         description: 'Kernel branch'
@@ -49,9 +49,15 @@ jobs:
       with:
         fetch-depth: 1
 
+    - name: Setup SSH Keys
+      if: ${{ startsWith(github.event.inputs.KERNEL_REPO, 'git@github.com') && github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Clone kernel source
       if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
-      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} kernel_root
 
     - name: Get Compiler option
       id: curr_compiler
