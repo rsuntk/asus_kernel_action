@@ -42,6 +42,10 @@ send_telegram() {
     local status="$2"
     local compiler="$3"
 
+    if [[ "$TG_UPLOAD" != "true" ]]; then
+        msg "Telegram upload disabled. Skipping upload."
+        return
+    fi
     if [[ -z "${TG_TOKEN:-}" || -z "${TG_CHAT_ID:-}" ]]; then
         msg "Telegram credentials missing. Skipping upload."
         return
