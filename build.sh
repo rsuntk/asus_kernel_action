@@ -47,11 +47,12 @@ send_telegram() {
         return
     fi
 
+    local cc_version_txt=$($compiler --version 2>/dev/null | head -n 1 | sed 's/\#//g')
     local md5=$(md5sum "$file" | cut -d' ' -f1)
     local h=$((SECONDS / 3600))
     local m=$(((SECONDS % 3600) / 60))
     local s=$((SECONDS % 60))
-    local cc_ver=$($compiler | perl -pe 's/\(http.*?\)//gs' | sed 's/[[:space:]]*$//')
+    local cc_ver=$(echo $cc_version_txt | perl -pe 's/\(http.*?\)//gs' | sed 's/[[:space:]]*$//')
 
     local msg_bar="build $status in ${h}h ${m}m ${s}s
 Device: <code>${DEVICE_TARGET}</code>
