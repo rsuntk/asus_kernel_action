@@ -52,14 +52,14 @@ jobs:
         fetch-depth: 1
 
     - name: Setup SSH Keys
-      if: ${{ startsWith(github.event.inputs.KERNEL_REPO, 'git@github.com') && github.event.inputs.UPDATE_TOOLCHAIN != 'true' }}
+      if: ${{ startsWith(inputs.KERNEL_REPO, 'git@github.com') && inputs.UPDATE_TOOLCHAIN != 'true' }}
       uses: webfactory/ssh-agent@v0.5.4
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Clone kernel source
-      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
-      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} kernel_root
+      if: inputs.UPDATE_TOOLCHAIN != 'true'
+      run: git clone --depth=1 --single-branch -b ${{ inputs.BRANCH }} ${{ inputs.KERNEL_REPO }} kernel_root
 
     - name: Get Compiler option
       id: curr_compiler
@@ -92,33 +92,33 @@ jobs:
       run: chmod +x ./build.sh && bash ./build.sh --setup-deps
 
     - name: Setup Build Environment
-      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      if: inputs.UPDATE_TOOLCHAIN != 'true'
       id: buildKernel
       run: |
         cd kernel_root
         gitsha1=$(git rev-parse --short HEAD)
         CODENAME=$(cat ../codename)
 
-        echo "buildDetails=$CODENAME-${{ github.event.inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
+        echo "buildDetails=$CODENAME-${{ inputs.DEVICE_TARGET }}-$(date +%Y%m%d)_$(echo $gitsha1)-NIGHTLY" >> $GITHUB_OUTPUT
         echo "currDate=$(date)" >> $GITHUB_OUTPUT
 
     - name: Fetch Toolchains
-      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
+      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' || inputs.UPDATE_TOOLCHAIN == 'true' }}
       env:
-        UPDATE_TOOLCHAINS: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
+        UPDATE_TOOLCHAINS: ${{ inputs.UPDATE_TOOLCHAIN }}
         COMP_OPTION: "${{ steps.curr_compiler.outputs.active_compiler }}"
       run: bash ./build.sh --fetch-toolchains
 
     - name: Build Kernel
-      if: github.event.inputs.UPDATE_TOOLCHAIN != 'true'
+      if: inputs.UPDATE_TOOLCHAIN != 'true'
       env:
         TG_UPLOAD: ${{ inputs.NEED_UPLOAD }}
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
+        DEVICE_TARGET: ${{ inputs.DEVICE_TARGET }}
         CI_ZIPNAME: "${{ steps.buildKernel.outputs.buildDetails }}.zip"
-        KCFLAGS_W: "${{ github.event.inputs.KCFLAGS_W }}"
-        EXTRA_CONFIG: "${{ github.event.inputs.EXTRA_CONFIG }}"
+        KCFLAGS_W: "${{ inputs.KCFLAGS_W }}"
+        EXTRA_CONFIG: "${{ inputs.EXTRA_CONFIG }}"
         COMP_OPTION: "${{ steps.curr_compiler.outputs.active_compiler }}"
       run: |
         cd kernel_root
@@ -127,12 +127,12 @@ jobs:
         fi
         # Handle KernelSU
         if [[ "$KSU" != "NULL" ]]; then
-          curl -LSs "${{ github.event.inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
+          curl -LSs "${{ inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
         fi
         bash ../build.sh
 
     - name: Upload kernel artifacts
-      if: github.event.inputs.NEED_UPLOAD == 'false'
+      if: inputs.NEED_UPLOAD == 'false'
       uses: actions/upload-artifact@v5
       with:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
@@ -141,7 +141,7 @@ jobs:
           kernel_root/out/.config
 
     - name: Upload kernel configs
-      if: github.event.inputs.NEED_UPLOAD == 'true'
+      if: inputs.NEED_UPLOAD == 'true'
       uses: actions/upload-artifact@v5
       with:
         name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}

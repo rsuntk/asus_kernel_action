@@ -126,7 +126,7 @@ if make "${BUILD_ARGS[@]}" 2>&1 | tee "$COMP_LOG"; then
     msg "Build successful. Packaging..."
 
     COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "untracked")
-    ZIPNAME="$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT.zip"
+    ZIPNAME=${CI_ZIPNAME:-"$DEVICE_TARGET-$(date '+%Y%m%d-%H%M')-$COMMIT.zip"}
     IMG="$OUT_DIR/arch/arm64/boot/Image.gz-dtb"
 
     git clone -q --depth=1 https://github.com/rsuntk/AnyKernel3 -b "$DEVICE_TARGET"
