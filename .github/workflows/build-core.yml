@@ -41,7 +41,7 @@ on:
         default: false
 
 jobs:
-  build:
+  build-kernel:
     runs-on: ubuntu-latest
     steps:
     - name: Set Timezone
@@ -132,18 +132,9 @@ jobs:
         bash ../build.sh
 
     - name: Upload kernel artifacts
-      if: inputs.NEED_UPLOAD == 'false'
       uses: actions/upload-artifact@v5
       with:
         name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
         path: |
           kernel_root/out/arch/arm64/boot/Image.gz-dtb
-          kernel_root/out/.config
-
-    - name: Upload kernel configs
-      if: inputs.NEED_UPLOAD == 'true'
-      uses: actions/upload-artifact@v5
-      with:
-        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
-        path: |
           kernel_root/out/.config
