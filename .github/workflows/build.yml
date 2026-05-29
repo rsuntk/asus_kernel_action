@@ -48,8 +48,8 @@ jobs:
       DEVICE_TARGET: ${{ github.event.inputs.DEVICE_TARGET }}
       KSU: ${{ github.event.inputs.KSU }}
       KSU_BRANCH: ${{ github.event.inputs.KSU_BRANCH }}
-      UPDATE_TOOLCHAIN: ${{ github.event.inputs.UPDATE_TOOLCHAIN }}
-      USE_GCC: ${{ github.event.inputs.USE_GCC }}
-      KCFLAGS_W: ${{ github.event.inputs.KCFLAGS_W }}
+      UPDATE_TOOLCHAIN: ${{ github.event.inputs.UPDATE_TOOLCHAIN == 'true' }}
+      USE_GCC: ${{ github.event.inputs.USE_GCC == 'true' }}
+      KCFLAGS_W: ${{ github.event.inputs.KCFLAGS_W == 'true' }}
       EXTRA_CONFIG: ${{ github.event.inputs.EXTRA_CONFIG }}
       NEED_UPLOAD: false
