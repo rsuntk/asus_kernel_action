@@ -12,7 +12,8 @@ __fetch_toolchain() {
         mkdir -p "$TC_DIR"
         #local url="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/9b144befdfd93b90e02c663504fb9f4b95f9faf8/clang-r596125.tar.gz"
         local url="https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/26052026/neutron-clang-26052026.tar.zst"
-        curl -Ls "$url" | tar -xf -C "$TC_DIR"
+        curl -Ls "$url" -O /tmp/clang.tar.zst
+        tar -xf /tmp/clang.tar.zst -C "$TC_DIR"
     else
         msg "Toolchain already exists."
     fi
