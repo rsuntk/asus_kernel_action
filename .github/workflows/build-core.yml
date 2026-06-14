@@ -110,7 +110,6 @@ jobs:
       run: bash ./build.sh --fetch-toolchains
 
     - name: Build Kernel
-      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' }}
       env:
         TG_UPLOAD: ${{ inputs.NEED_UPLOAD }}
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
@@ -121,15 +120,17 @@ jobs:
         EXTRA_CONFIG: "${{ inputs.EXTRA_CONFIG }}"
         COMP_OPTION: "${{ steps.curr_compiler.outputs.active_compiler }}"
       run: |
-        cd kernel_root
-        if [ ! -d ~/.ccache ]; then
-          mkdir -p ~/.ccache
+        if [[ "${{ inputs.UPDATE_TOOLCHAIN }}" != "true" ]]; then
+          cd kernel_root
+          if [ ! -d ~/.ccache ]; then
+            mkdir -p ~/.ccache
+          fi
+          # Handle KernelSU
+          if [[ "$KSU" != "NULL" ]]; then
+            curl -LSs "${{ inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
+          fi
+          bash ../build.sh
         fi
-        # Handle KernelSU
-        if [[ "$KSU" != "NULL" ]]; then
-          curl -LSs "${{ inputs.KSU }}" | bash -s ${{ inputs.KSU_BRANCH }}
-        fi
-        bash ../build.sh
 
     - name: Upload kernel artifacts
       uses: actions/upload-artifact@v5
