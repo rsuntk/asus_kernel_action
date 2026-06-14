@@ -69,8 +69,8 @@ jobs:
           echo "cache_key=gcc-eva-arm64" >> $GITHUB_OUTPUT
           echo "active_compiler=gcc" >> $GITHUB_OUTPUT
         else
-          echo "tc_dir=$HOME/clang-22" >> $GITHUB_OUTPUT
-          echo "cache_key=llvm-22-aosp" >> $GITHUB_OUTPUT
+          echo "tc_dir=$HOME/neutron-clang" >> $GITHUB_OUTPUT
+          echo "cache_key=llvm-23-neutron" >> $GITHUB_OUTPUT
           echo "active_compiler=llvm" >> $GITHUB_OUTPUT
         fi
 
