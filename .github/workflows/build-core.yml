@@ -110,7 +110,7 @@ jobs:
       run: bash ./build.sh --fetch-toolchains
 
     - name: Build Kernel
-      if: inputs.UPDATE_TOOLCHAIN != 'true'
+      if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' }}
       env:
         TG_UPLOAD: ${{ inputs.NEED_UPLOAD }}
         TG_TOKEN: ${{ secrets.TG_TOKEN }}
