@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        device: [X01BD]
+        device: [X01BD, X00TD]
       fail-fast: false
     uses: ./.github/workflows/build-core.yml
     secrets: inherit
