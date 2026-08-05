@@ -4,11 +4,11 @@ on:
     inputs:
       KERNEL_REPO:
         description: 'Kernel URL repository'
-        default: 'https://github.com/rsuntk/android_kernel_asus_sdm660-4.19'
+        default: 'https://github.com/rsuntk/android_kernel_asus_X01BD-4.19'
         required: true
       BRANCH:
         description: 'Kernel branch'
-        default: 'lineage-23.2'
+        default: 'master'
         required: true
       DEVICE_TARGET:
         description: 'Device to build'
@@ -21,7 +21,7 @@ on:
       KSU_BRANCH:
         description: 'KernelSU branch'
         required: true
-        default: 'main'
+        default: 'staging/xxksu'
       UPDATE_TOOLCHAIN:
         description: 'Update toolchain cache'
         type: boolean
@@ -36,7 +36,7 @@ on:
         default: false
       EXTRA_CONFIG:
         description: 'Use Extra defconfig'
-        default: 'NULL'
+        default: 'vendor/extra/ksu.config vendor/extra/disable_thermal.config'
 
 jobs:
   build:
