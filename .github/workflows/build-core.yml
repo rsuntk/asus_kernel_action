@@ -139,3 +139,9 @@ jobs:
         path: |
           kernel_root/out/arch/arm64/boot/Image.gz-dtb
           kernel_root/out/.config
+
+    - name: Upload AnyKernel3 artifacts
+      uses: actions/upload-artifact@v5
+      with:
+        name: AK3-${{ steps.buildKernel.outputs.buildDetails }}
+        path: kernel_root/AnyKernel3/*
