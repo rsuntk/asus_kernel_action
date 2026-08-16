@@ -4,7 +4,7 @@ on:
     inputs:
       KERNEL_REPO:
         description: 'Kernel URL repository'
-        default: 'https://github.com/rsuntk/android_kernel_asus_X01BD-4.19'
+        default: 'https://github.com/rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
       BRANCH:
         description: 'Kernel branch'
@@ -19,13 +19,13 @@ on:
         default: 'staging/xxksu'
       EXTRA_CONFIG:
         description: 'Use Extra defconfig'
-        default: 'vendor/extra/ksu.config'
+        default: 'vendor/extra/ksu.config vendor/extra/release.config'
 
 jobs:
   build:
     strategy:
       matrix:
-        device: [X01BD]
+        device: [X01BD, X00TD]
       fail-fast: false
     uses: ./.github/workflows/build-core.yml
     secrets: inherit
