@@ -70,7 +70,7 @@ jobs:
           echo "active_compiler=gcc" >> $GITHUB_OUTPUT
         else
           echo "tc_dir=$HOME/neutron-clang" >> $GITHUB_OUTPUT
-          echo "cache_key=llvm-23-neutron" >> $GITHUB_OUTPUT
+          echo "cache_key=llvm-24-neutron" >> $GITHUB_OUTPUT
           echo "active_compiler=llvm" >> $GITHUB_OUTPUT
         fi
 
