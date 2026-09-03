@@ -12,11 +12,11 @@ on:
         required: true
       KSU:
         description: 'Add KernelSU support'
-        default: "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh"
+        default: "https://raw.githubusercontent.com/backslashxx/KernelSU/master/kernel/setup.sh"
       KSU_BRANCH:
         description: 'KernelSU branch'
         required: true
-        default: 'staging/xxksu'
+        default: 'master'
       EXTRA_CONFIG:
         description: 'Use Extra defconfig'
         default: 'vendor/extra/ksu.config vendor/extra/release.config'
