@@ -8,11 +8,12 @@ export LD_LIBRARY_PATH="$TC_DIR/lib:$TC_DIR/lib64:${LD_LIBRARY_PATH:-}"
 
 __fetch_toolchain() {
     if [ ! -d "$TC_DIR" ]; then
-        #msg "Downloading AOSP-LLVM..."
+        msg "Downloading AOSP-LLVM..."
         mkdir -p "$TC_DIR"
         #local url="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/9b144befdfd93b90e02c663504fb9f4b95f9faf8/clang-r596125.tar.gz"
         #local url="https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/26052026/neutron-clang-26052026.tar.zst"
-        local url="https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/30072026/neutron-clang-30072026.tar.zst"
+        #local url="https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/30072026/neutron-clang-30072026.tar.zst"
+        local url="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r584948.tar.gz"
         wget "$url" -O /tmp/clang.tar.zst
         tar -xvf /tmp/clang.tar.zst -C "$TC_DIR"
     else
