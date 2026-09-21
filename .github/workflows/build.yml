@@ -4,7 +4,7 @@ on:
     inputs:
       KERNEL_REPO:
         description: 'Kernel URL repository'
-        default: 'https://github.com/rsuntk/android_kernel_asus_X01BD-4.19'
+        default: 'https://github.com/rsuntk/android_kernel_asus_sdm660-4.19'
         required: true
       BRANCH:
         description: 'Kernel branch'
@@ -17,11 +17,11 @@ on:
         options: [X01BD, X00TD]
       KSU:
         description: 'Add KernelSU support'
-        default: "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh"
+        default: "https://raw.githubusercontent.com/backslashxx/KernelSU/master/kernel/setup.sh"
       KSU_BRANCH:
         description: 'KernelSU branch'
         required: true
-        default: 'staging/xxksu'
+        default: 'master'
       UPDATE_TOOLCHAIN:
         description: 'Update toolchain cache'
         type: boolean
