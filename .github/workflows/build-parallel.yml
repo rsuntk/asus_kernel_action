@@ -20,6 +20,10 @@ on:
       EXTRA_CONFIG:
         description: 'Use Extra defconfig'
         default: 'vendor/extra/ksu.config vendor/extra/release.config'
+      UPLOAD_TO_TELEGRAM:
+        description: 'Upload to Telegram'
+        default: true
+        type: boolean
 
 jobs:
   build:
@@ -39,5 +43,5 @@ jobs:
       USE_GCC: false
       KCFLAGS_W: false
       EXTRA_CONFIG: ${{ github.event.inputs.EXTRA_CONFIG }}
-      NEED_UPLOAD: true
+      NEED_UPLOAD: ${{ github.event.inputs.UPLOAD_TO_TELEGRAM }}
 
