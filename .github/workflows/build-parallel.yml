@@ -19,7 +19,7 @@ on:
         default: 'master'
       EXTRA_CONFIG:
         description: 'Use Extra defconfig'
-        default: 'vendor/extra/ksu.config vendor/extra/release.config'
+        default: 'vendor/extra/ksu.config'
       UPLOAD_TO_TELEGRAM:
         description: 'Upload to Telegram'
         default: true
