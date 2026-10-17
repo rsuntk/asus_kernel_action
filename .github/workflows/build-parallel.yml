@@ -43,5 +43,5 @@ jobs:
       USE_GCC: false
       KCFLAGS_W: false
       EXTRA_CONFIG: ${{ github.event.inputs.EXTRA_CONFIG }}
-      NEED_UPLOAD: ${{ github.event.inputs.UPLOAD_TO_TELEGRAM }}
+      NEED_UPLOAD: ${{ github.event.inputs.UPLOAD_TO_TELEGRAM == 'true' }}
 
